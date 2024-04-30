@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.mvv.personal</groupId>
+  <artifactId>kotlin-with-maven-toolchains</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>Example of using kotlin compiler with maven toolchain</name>
+
+  <description>Example of using kotlin compiler with maven toolchain</description>
+
+  <properties>
+    <!-- Required JDK version. -->
+    <toolchain.jdk.version>[22,)</toolchain.jdk.version>
+
+    <java.version>22</java.version>
+    <java.release>${java.version}</java.release>
+    <kotlin.version>1.7.0</kotlin.version>
+    <kotlin.compiler.languageVersion>1.7</kotlin.compiler.languageVersion>
+
+    <kotlin.compiler.jvmTarget>15</kotlin.compiler.jvmTarget>
+    <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+
+    <kotlin-maven-plugin.version>${kotlin.version}</kotlin-maven-plugin.version>
+
+    <!-- General/language properties -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <!-- Tests -->
+    <jupiter.version>5.11.0-M1</jupiter.version>
+    <assertj.version>3.25.3</assertj.version>
+    <!-- For 1.9.0 -->
+    <!-- <mockito-kotlin.version>5.3.1</mockito-kotlin.version> -->
+    <!-- For 1.7.0 -->
+    <mockito-kotlin.version>5.1.0</mockito-kotlin.version>
+    <mockito.version>5.11.0</mockito.version>
+    <net-byte-buddy.version>1.12.10</net-byte-buddy.version>
+
+    <!-- To shut up Idea. -->
+    <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+    <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
+    <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
+    <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+    <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
+    <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk8</artifactId>
+      <!--suppress MavenPackageUpdate -->
+      <version>${kotlin.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-reflect</artifactId>
+      <!--suppress MavenPackageUpdate -->
+      <version>${kotlin.version}</version>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito.kotlin</groupId>
+      <artifactId>mockito-kotlin</artifactId>
+      <!-- mockito-kotlin after 5.1.0 are build for kotlin 1.9.0 -->
+      <!--suppress PackageUpdate -->
+      <version>${mockito-kotlin.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>${mockito.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+
+    <plugins>
+      <!--
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <parameters>true</parameters>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      -->
+
+      <plugin>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-maven-plugin</artifactId>
+        <version>${kotlin-maven-plugin.version}</version>
+
+        <configuration>
+          <nowarn>false</nowarn>
+          <args>
+            <arg>-java-parameters</arg>
+            <arg>-Xjsr305=strict</arg>
+            <arg>-Xemit-jvm-type-annotations</arg>
+            <arg>-Xjvm-default=all</arg>
+            <!--<arg>-Xnullability-annotations=@<package-name>:<report-level></arg>-->
+            <!--<arg>-Xnullability-annotations=strict</arg>-->
+          </args>
+          <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
+        </configuration>
+
+        <executions>
+          <execution>
+            <id>compile</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+
+          <execution>
+            <id>test-compile</id>
+            <goals>
+              <goal>test-compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+        <configuration>
+          <excludes>
+            <exclude>**/*ITTest*</exclude>
+            <exclude>**/*ITest*</exclude>
+            <exclude>**/*Integration*</exclude>
+          </excludes>
+          <argLine>--enable-native-access=ALL-UNNAMED</argLine>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-toolchains-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <!-- Old goal 'toolchain' supports only $home/.m2/toolchains.xml file. -->
+              <!-- <goal>toolchain</goal> -->
+
+              <!-- Extended goal which supports
+                    * toolchains from $home/.m2/toolchains.xml file
+                    * current JDK (current $JAVA_HOME)
+                    * standard locations (for example in C:/Program Files/...)
+                    * JDKs from env variables in format like JAVA11_HOME, JAVA22_HOME (pattern is configurable)
+                -->
+              <goal>select-jdk-toolchain</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- The version constraint for the JDK toolchain to select.
+
+               See https://docs.oracle.com/middleware/1212/core/MAVEN/maven_version.htm
+                   '7.3 Version Range References' about version restrictions/format.
+            -->
+          <version>${toolchain.jdk.version}</version>
+
+          <!-- The runtime version constraint for the JDK toolchain to select. -->
+          <!--<runtimeVersion></runtimeVersion>-->
+
+          <!-- The vendor constraint for the JDK toolchain to select. -->
+          <!--<vendor></vendor>-->
+
+          <!-- True by default. -->
+          <!-- <discoverToolchains>true</discoverToolchains> -->
+
+          <!-- Possible values of enum JdkMode:
+                 Never   - always ignore the current JDK
+                 IfSame  - to not use a toolchain if the toolchains that would be selected is the current JDK
+                 IfMatch - favor the current JDK if it matches the requirements
+
+                 IfMatch is default value.
+            -->
+          <!--<useJdk>IfMatch</useJdk>-->
+
+          <!-- The runtime name constraint for the JDK toolchain to select. -->
+          <!--<runtimeName></runtimeName>-->
+
+          <!-- Configuration for old 'toolchain' goal.
+               Actually if we use select-jdk-toolchain goal it is not needed, but let's keep it to avoid IDEA warning let keep it.
+            -->
+          <toolchains>
+            <jdk>
+              <version>${toolchain.jdk.version}</version>
+            </jdk>
+          </toolchains>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.4.0</version>
+        <executions>
+          <execution>
+            <id>use-maven-toolchain-jdk-for-kotlin</id>
+            <!-- Binds to the "validate" phase by default. -->
+            <goals>
+              <goal>bsh-property</goal>
+            </goals>
+            <!-- Uncomment this for skipping plugin. -->
+            <!-- <phase/> -->
+            <configuration>
+              <source><![CDATA[
+                import org.apache.maven.plugin.descriptor.PluginDescriptor;
+
+                String toolChainJdk = null;
+
+                try {
+                  PluginDescriptor pd = new PluginDescriptor();
+                  pd.setGroupId("org.apache.maven.plugins");
+                  pd.setArtifactId("maven-toolchains-plugin");
+
+                  Map pluginContext = session.getPluginContext(pd, project);
+                  if (pluginContext == null)
+                    throw new IllegalStateException("maven-toolchains-plugin plugin context is not found. Probably it is not set up.");
+
+                  // A bit risky part of code: I'm not 100% sure that this class will be used in the future.
+                  // It is not specified in the org.apache.maven.model.ConfigurationContainer
+                  // (there is just java.lang.Object, but it must be some DOM)
+
+                  Object toolchainPluginContext = pluginContext.get("toolchain-jdk");
+                  if (toolchainPluginContext != null) {
+                    // We can use type Object in bean-shell script instead of Xpp3Dom.
+                    // Real type is XML DOM object (currently type is org.codehaus.plexus.util.xml.Xpp3Dom class)
+
+                    Object config = toolchainPluginContext.getConfiguration();
+                    if (config != null && config.getChildCount() > 0)
+                      toolChainJdk = config.getChild(0).getValue().trim();
+                  }
+                } catch (Exception ex) {
+                  log.error("toolchain-jdk is not found. " + ex.getMessage(), ex);
+
+                  // Or we can rethrow error just there.
+                  // throw new IllegalStateException("toolchain-jdk is not found.", ex);
+                }
+
+                String requiredJdkVersion = project.getProperties().getProperty("toolchain.jdk.version");
+                if (toolChainJdk != null && !toolChainJdk.isEmpty()) {
+                  project.getProperties().setProperty("kotlin.compiler.jdkHome", toolChainJdk);
+
+                  log.info("toolchain-jdk for version '" + requiredJdkVersion + "' is " + toolChainJdk);
+                  log.info("It will be used for kotlin compiler");
+                }
+                else {
+                  String currentJavaHome = System.getProperty("java.home");
+
+                  log.info("toolchain-jdk for version '" + requiredJdkVersion + "' is not found.");
+                  log.info("  Possible reasons");
+                  log.info("    * default java_home matches required java version ");
+                  log.info("    * maven-toolchains-plugin is not configured properly");
+                  log.info("  ");
+                  log.info("Default " + currentJavaHome + " will be used.");
+                }
+
+                ]]>
+              </source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+  <repositories>
+    <repository>
+      <id>maven_central</id>
+      <name>Maven Central</name>
+      <url>https://repo.maven.apache.org/maven2/</url>
+    </repository>
+  </repositories>
+
+</project>
