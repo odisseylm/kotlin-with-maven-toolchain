@@ -16,7 +16,7 @@ Kotlin + Maven toolchain
 Но вот недавно (в апреле 2024) подъехала новая версия, которая поддерживает
  * $home/.m2/toolchains.xml файл
  * может подхватывать текущий JDK ($JAVA_HOME), если он удовлетворяет заданным критериям
- * делает поиск в стандартных директориях (например, C:/Program Files/...) (TODO: пока лично не тестировал)
+ * делает поиск в стандартных директориях (например, C:/Program Files/...)
  * делает поиск в переменных окружения по паттерну (например: JAVA11_HOME, JAVA22_HOME). Паттерн конфигурируем.
  * [custom toolchains](https://maven.apache.org/plugins/maven-toolchains-plugin/toolchains/custom.html)
 
