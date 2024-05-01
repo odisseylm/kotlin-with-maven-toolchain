@@ -1,39 +1,41 @@
 
 Kotlin + Maven toolchain
 
-Главная идея статьи - это показать как заставить ЭТО (kotlin & maven toolchain) работать вместе.
-Детального описания Maven toolchain здесь не будет, не хочу заниматься банальным переводом руководств.
+Main article idea is to show how to make IT (kotlin & maven toolchain) work together.
+There will not be detailed description of Maven toolchain, but there will be references to official documentation.
 
-Начну с прелюдии.
- Как котлинисту, мне новые версии java как-то по боку, но тут в JDK 22 подъехала годнота - panama/foreign вышла из инкубатора.
- Для тех кто не в теме, эта фича дает вам возможность вызывать нативный код из 'динамической библиотеки' dll/so (прямо из java кода).
- Теперь вы можете вызывать системные функции сами, а не подключать неизвестные вам библиотеки.
+Prelude.
+ As kotlin developer I am absolutely not interested in new java versions,
+ but one yummy appeared in JDK 22 - panama/foreign was released (earlier it was in incubating phase).
+ For those who are not in the know, panama/foreign allows to call native code (from your java code without additional third-parties).
+ 
+Maven toolchain in short
+It allows you to pick required jdk up (or other tool) automatically.
+ Until 2024 maven toolchain plugin was very simple/weak (comparing with gradle toolchains)
+ - only toolchain/jdk from $HOME/.m2/toolchains.xml were supported
 
-Вкратце о Maven toolchain.
-Эта фича позволяет подключать нужную версию jdk (или других инструментов) автоматически.
- До апреля 2024 года maven toolchain плагин был довольно слабенький (по сравнению с gradle toolchains)
- - он позволял выбирать toolchain/jdk только из $HOME/.m2/toolchains.xml.
-Но вот недавно (в апреле 2024) подъехала новая версия, которая поддерживает
- * $home/.m2/toolchains.xml файл
- * может подхватывать текущий JDK ($JAVA_HOME), если он удовлетворяет заданным критериям
- * делает поиск в стандартных директориях (например, C:/Program Files/...) (TODO: пока лично не тестировал)
- * делает поиск в переменных окружения по паттерну (например: JAVA11_HOME, JAVA22_HOME). Паттерн конфигурируем.
+But recently (in April 2024) new version appeared and it supports
+ * $home/.m2/toolchains.xml (as previous one)
+ * can use current JDK ($JAVA_HOME) if it matches specified requirements
+ * does search in predefined system directories (for example, C:/Program Files/...)
+ * does search in environment variables by pattern (for example: JAVA11_HOME, JAVA22_HOME). The pattern is configurable.
  * [custom toolchains](https://maven.apache.org/plugins/maven-toolchains-plugin/toolchains/custom.html)
 
-Сейчас maven toolchain даже немного лучше своего собрата из gradle.
- В gradle есть неприятный баг по игнорированию vendor (и др атрибутов) из $home/.m2/toolchains.xml,
- в результате невозможно отличить Oracle (standard) JDK от Oracle Graal JDK.
+At that moment maven toolchain is a bit better than even its sibling from a gradle world.
+ Gradle has bug about ignoring 'vendor' (and other attributes) from $home/.m2/toolchains.xml,
+ as result it is impossible to distinguish Oracle (standard) JDK and Oracle Graal JDK.
 
 
-Перейдем к главному.
+Let's move to main our idea.
 
-У нас всё ещё есть одна проблемка - maven kotlin plugin не дружит с maven toolchain plugin.
- По крайней мере я не нашел как ему сказать, чтобы он подружился. 
+We still have one problem - maven kotlin plugin does not make 'friendship' with maven toolchain plugin.
+ At least I didn't find way how to force kotlin to use toolchain JDK. 
 
-Но... у maven kotlin plugin есть конфигурационный параметр jdkHome, который мапится на maven property "toolchain.jdk.version".
- Это и будет нашим спасением - нужно взять JDK home, найденный toolchain plugin и установить его в соответсвующее свойство.
- Как по мне решение +- надежное (весь рискованный код помещен в try/catch), но это уже ваш выбор использовать ли его в production,
- или только в домашнем проекте. В худшем случае, оно просто не будет работать и вы просто вернетесь к старой доброй установке JAVA_HOME.
+However... maven kotlin plugin has a configuration parameter 'jdkHome', which is mapped to maven property 'toolchain.jdk.version'.
+ It will save us - we just need to get JDK home from toolchain plugin and set corresponding maven property.
+ The solution is less-more reliable (all risky code is put into try/catch).
+ It is your choice to use it in production, or use only in pet projects.
+ In the worst case, it just wil not work, and you will need to set up JAVA_HOME (as did it usually).
 
 
 ```xml
@@ -154,9 +156,9 @@ Kotlin + Maven toolchain
 </project>
 ```
 
-Полные исходники на [github](https://github.com/odisseylm/kotlin-with-maven-toolchain)
+Sources [GitHub](https://github.com/odisseylm/kotlin-with-maven-toolchain)
 
-Полезные ссылки
+Useful links
  * Maven Toolchains Plugin [home](https://maven.apache.org/plugins/maven-toolchains-plugin/)
    * [JDK Toolchain discovery mechanism](https://maven.apache.org/plugins/maven-toolchains-plugin/toolchains/jdk-discovery.html)
    * Goals
@@ -165,8 +167,7 @@ Kotlin + Maven toolchain
      * [toolchains:generate-jdk-toolchains-xml](https://maven.apache.org/plugins/maven-toolchains-plugin/generate-jdk-toolchains-xml-mojo.html)
      * [старенький слабенький toolchains:toolchain](https://maven.apache.org/plugins/maven-toolchains-plugin/toolchain-mojo.html)
      * [toolchains:help](https://maven.apache.org/plugins/maven-toolchains-plugin/help-mojo.html)
-   * [Конфигурация](https://maven.apache.org/plugins-archives/maven-toolchains-plugin-LATEST/select-jdk-toolchain-mojo.html) (или сырцы SelectJdkToolchainMojo)
+   * [Конфигурация](https://maven.apache.org/plugins-archives/maven-toolchains-plugin-LATEST/select-jdk-toolchain-mojo.html) (or SelectJdkToolchainMojo.java source)
    * On mojohaus
      * [Using Toolchains Instead of Explicit Paths](https://www.mojohaus.org/exec-maven-plugin/examples/example-exec-using-toolchains.html)
- * [Введение в Maven Toolchain](https://habr.com/ru/articles/647831/)
  * [SDKMAN](https://sdkman.io/)
